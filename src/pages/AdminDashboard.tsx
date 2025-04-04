@@ -8,10 +8,15 @@ import {
   LogOut, 
   Bell, 
   Search, 
-  PlusCircle, 
   User,
   FileText,
-  Mail
+  Mail,
+  Filter,
+  Edit,
+  Trash,
+  MessageSquare,
+  Database,
+  Server
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,10 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent
-} from "@/components/ui/chart";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import { 
   AreaChart, 
   Area, 
@@ -34,45 +42,80 @@ import {
   Tooltip, 
   Legend, 
   ResponsiveContainer,
-  Bar
+  Bar,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Données fictives pour le graphique
-const recentData = [
-  { name: "Jan", value: 400 },
-  { name: "Fév", value: 300 },
-  { name: "Mar", value: 500 },
-  { name: "Avr", value: 450 },
-  { name: "Mai", value: 650 },
-  { name: "Juin", value: 700 },
-  { name: "Juil", value: 550 },
+// Données pour les statistiques
+const statsData = {
+  totalUsers: 1254,
+  activeUsers: 876,
+  emailsSent: 8752,
+  apiCalls: 124680,
+};
+
+// Données pour le graphique d'activité
+const activityData = [
+  { name: "Lun", emails: 145, calls: 230 },
+  { name: "Mar", emails: 156, calls: 250 },
+  { name: "Mer", emails: 202, calls: 310 },
+  { name: "Jeu", emails: 189, calls: 280 },
+  { name: "Ven", emails: 210, calls: 340 },
+  { name: "Sam", emails: 102, calls: 110 },
+  { name: "Dim", emails: 85, calls: 90 },
 ];
 
-const userTypeData = [
-  { name: "Gratuit", value: 400 },
-  { name: "Premium", value: 300 },
-  { name: "Entreprise", value: 200 },
+// Données de distribution des utilisateurs
+const userDistributionData = [
+  { name: "Gratuit", value: 650 },
+  { name: "Premium", value: 450 },
+  { name: "Entreprise", value: 154 },
 ];
+
+// Données d'utilisation API par service
+const apiUsageData = [
+  { name: "Recherche", value: 38450 },
+  { name: "Messagerie", value: 24680 },
+  { name: "Stockage", value: 15320 },
+  { name: "Authentification", value: 42300 },
+  { name: "Autres", value: 3930 },
+];
+
+// Couleurs pour les graphiques
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 // Liste d'utilisateurs fictive
 const mockUsers = [
-  { id: 1, name: "Thomas Durand", email: "thomas@example.com", status: "Actif", plan: "Premium" },
-  { id: 2, name: "Marie Leroy", email: "marie@example.com", status: "Actif", plan: "Gratuit" },
-  { id: 3, name: "Paul Dubois", email: "paul@example.com", status: "Inactif", plan: "Entreprise" },
-  { id: 4, name: "Sophie Martin", email: "sophie@example.com", status: "Actif", plan: "Premium" },
-  { id: 5, name: "Lucas Bernard", email: "lucas@example.com", status: "Actif", plan: "Gratuit" },
-];
-
-// Données de notifications fictives
-const notifications = [
-  { id: 1, title: "Nouvel utilisateur", message: "Paul Dubois vient de s'inscrire", time: "Il y a 10 minutes" },
-  { id: 2, title: "Mise à jour système", message: "Maintenance planifiée ce weekend", time: "Il y a 1 heure" },
-  { id: 3, title: "Alerte sécurité", message: "5 tentatives de connexion échouées", time: "Il y a 3 heures" },
+  { id: 1, name: "Thomas Durand", email: "thomas@example.com", status: "Actif", plan: "Premium", lastActivity: "Aujourd'hui", apiCalls: 342, emailsSent: 15 },
+  { id: 2, name: "Marie Leroy", email: "marie@example.com", status: "Actif", plan: "Gratuit", lastActivity: "Hier", apiCalls: 124, emailsSent: 3 },
+  { id: 3, name: "Paul Dubois", email: "paul@example.com", status: "Inactif", plan: "Entreprise", lastActivity: "Il y a 3 jours", apiCalls: 0, emailsSent: 0 },
+  { id: 4, name: "Sophie Martin", email: "sophie@example.com", status: "Actif", plan: "Premium", lastActivity: "Aujourd'hui", apiCalls: 215, emailsSent: 8 },
+  { id: 5, name: "Lucas Bernard", email: "lucas@example.com", status: "Actif", plan: "Gratuit", lastActivity: "Il y a 2 jours", apiCalls: 78, emailsSent: 2 },
+  { id: 6, name: "Julie Moreau", email: "julie@example.com", status: "Actif", plan: "Premium", lastActivity: "Aujourd'hui", apiCalls: 189, emailsSent: 11 },
+  { id: 7, name: "Antoine Lefebvre", email: "antoine@example.com", status: "Inactif", plan: "Gratuit", lastActivity: "Il y a 5 jours", apiCalls: 12, emailsSent: 0 },
+  { id: 8, name: "Camille Petit", email: "camille@example.com", status: "Actif", plan: "Entreprise", lastActivity: "Hier", apiCalls: 524, emailsSent: 32 },
 ];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [planFilter, setPlanFilter] = useState("all");
   
   // Admin info
   const admin = {
@@ -81,23 +124,27 @@ const AdminDashboard = () => {
     avatarUrl: "",
   };
   
-  // Stats
-  const stats = {
-    totalUsers: 1254,
-    activeUsers: 876,
-    monthlyRevenue: "12 450€",
-    pendingSupport: 8,
-  };
-  
   const handleLogout = () => {
     toast.success("Déconnexion réussie");
     navigate('/');
   };
   
-  const filteredUsers = mockUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrer les utilisateurs en fonction des critères
+  const filteredUsers = mockUsers.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || 
+                         (statusFilter === "active" && user.status === "Actif") ||
+                         (statusFilter === "inactive" && user.status === "Inactif");
+    
+    const matchesPlan = planFilter === "all" ||
+                       (planFilter === "free" && user.plan === "Gratuit") ||
+                       (planFilter === "premium" && user.plan === "Premium") ||
+                       (planFilter === "enterprise" && user.plan === "Entreprise");
+    
+    return matchesSearch && matchesStatus && matchesPlan;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -118,12 +165,16 @@ const AdminDashboard = () => {
               <span>Utilisateurs</span>
             </a>
             <a href="#" className="flex items-center space-x-2 p-3 mb-2 rounded-md hover:bg-slate-700 transition-colors">
-              <FileText size={20} />
-              <span>Rapports</span>
+              <Mail size={20} />
+              <span>Emails</span>
             </a>
             <a href="#" className="flex items-center space-x-2 p-3 mb-2 rounded-md hover:bg-slate-700 transition-colors">
-              <Mail size={20} />
-              <span>Messages</span>
+              <Server size={20} />
+              <span>API</span>
+            </a>
+            <a href="#" className="flex items-center space-x-2 p-3 mb-2 rounded-md hover:bg-slate-700 transition-colors">
+              <FileText size={20} />
+              <span>Rapports</span>
             </a>
             <a href="#" className="flex items-center space-x-2 p-3 mb-2 rounded-md hover:bg-slate-700 transition-colors">
               <Settings size={20} />
@@ -182,7 +233,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-3xl font-bold">{stats.totalUsers}</p>
+                  <p className="text-3xl font-bold">{statsData.totalUsers}</p>
                   <Users className="h-8 w-8 text-indigo-500" />
                 </div>
               </CardContent>
@@ -195,7 +246,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-3xl font-bold">{stats.activeUsers}</p>
+                  <p className="text-3xl font-bold">{statsData.activeUsers}</p>
                   <User className="h-8 w-8 text-green-500" />
                 </div>
               </CardContent>
@@ -203,26 +254,26 @@ const AdminDashboard = () => {
             
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Revenus</CardTitle>
-                <CardDescription>Ce mois-ci</CardDescription>
+                <CardTitle className="text-lg">Emails envoyés</CardTitle>
+                <CardDescription>Total</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-3xl font-bold">{stats.monthlyRevenue}</p>
-                  <BarChart3 className="h-8 w-8 text-blue-500" />
+                  <p className="text-3xl font-bold">{statsData.emailsSent}</p>
+                  <Mail className="h-8 w-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Support</CardTitle>
-                <CardDescription>Tickets en attente</CardDescription>
+                <CardTitle className="text-lg">Appels API</CardTitle>
+                <CardDescription>Total</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-3xl font-bold">{stats.pendingSupport}</p>
-                  <Mail className="h-8 w-8 text-amber-500" />
+                  <p className="text-3xl font-bold">{statsData.apiCalls}</p>
+                  <Server className="h-8 w-8 text-amber-500" />
                 </div>
               </CardContent>
             </Card>
@@ -232,12 +283,97 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
-                <CardTitle>Utilisateurs récents</CardTitle>
-                <CardDescription>Croissance des nouveaux utilisateurs</CardDescription>
+                <CardTitle>Activité hebdomadaire</CardTitle>
+                <CardDescription>Emails et appels API</CardDescription>
               </CardHeader>
               <CardContent className="h-80">
-                <ChartContainer config={{}} className="h-full">
-                  <AreaChart data={recentData}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="emails" fill="#8884d8" name="Emails" />
+                    <Bar dataKey="calls" fill="#82ca9d" name="Appels API" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribution des utilisateurs</CardTitle>
+                <CardDescription>Par type d'abonnement</CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={userDistributionData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {userDistributionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value} utilisateurs`, 'Nombre']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Utilisation de l'API</CardTitle>
+                <CardDescription>Par service</CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={apiUsageData}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={100} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" name="Appels">
+                      {apiUsageData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Statistiques mensuelles</CardTitle>
+                <CardDescription>Croissance du trafic API</CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={[
+                      {name: 'Jan', value: 24000},
+                      {name: 'Fév', value: 26000},
+                      {name: 'Mar', value: 32000},
+                      {name: 'Avr', value: 34000},
+                      {name: 'Mai', value: 38000},
+                      {name: 'Juin', value: 42000},
+                    ]}
+                  >
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
@@ -247,42 +383,22 @@ const AdminDashboard = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <CartesianGrid strokeDasharray="3 3" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorValue)" />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="value" stroke="#8884d8" fillOpacity={1} fill="url(#colorValue)" name="Appels API" />
                   </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Répartition des utilisateurs</CardTitle>
-                <CardDescription>Par type d'abonnement</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ChartContainer config={{}} className="h-full">
-                  <BarChart data={userTypeData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </ChartContainer>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
           
-          {/* Content Tabs */}
-          <Tabs defaultValue="users" className="mb-8">
-            <TabsList>
-              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="users" className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
-                <div className="relative w-64">
+          {/* Users Table */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Liste des utilisateurs</CardTitle>
+              <CardDescription>Gérer les utilisateurs de la plateforme</CardDescription>
+              
+              <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+                <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
                   <Input
                     placeholder="Rechercher un utilisateur..."
@@ -291,96 +407,113 @@ const AdminDashboard = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Ajouter un utilisateur
-                </Button>
-              </div>
-              
-              <div className="rounded-md border">
-                <div className="overflow-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Utilisateur
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Statut
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Abonnement
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
-                                  {user.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{user.email}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              user.status === 'Actif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {user.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {user.plan}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                              Éditer
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                
+                <div className="flex gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les statuts</SelectItem>
+                      <SelectItem value="active">Actifs</SelectItem>
+                      <SelectItem value="inactive">Inactifs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={planFilter} onValueChange={setPlanFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Abonnement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les plans</SelectItem>
+                      <SelectItem value="free">Gratuit</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="enterprise">Entreprise</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </TabsContent>
+            </CardHeader>
             
-            <TabsContent value="notifications" className="space-y-4">
-              <div className="space-y-4">
-                {notifications.map((notification) => (
-                  <Card key={notification.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start">
-                        <div className="mr-4 mt-1">
-                          <Bell className="h-8 w-8 text-slate-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{notification.title}</h3>
-                          <p className="text-sm text-gray-600">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Utilisateur</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Abonnement</TableHead>
+                    <TableHead>Dernière activité</TableHead>
+                    <TableHead>Appels API</TableHead>
+                    <TableHead>Emails</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-4">
+                        Aucun utilisateur trouvé.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
+                                {user.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{user.name}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.status === 'Actif' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>{user.plan}</TableCell>
+                        <TableCell>{user.lastActivity}</TableCell>
+                        <TableCell>{user.apiCalls}</TableCell>
+                        <TableCell>{user.emailsSent}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                Actions
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="cursor-pointer flex items-center">
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Éditer</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="cursor-pointer flex items-center">
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                <span>Contacter</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="cursor-pointer flex items-center text-red-600">
+                                <Trash className="mr-2 h-4 w-4" />
+                                <span>Désactiver</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
