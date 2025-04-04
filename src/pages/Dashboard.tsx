@@ -3,15 +3,25 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Copy, Mail, Eye, EyeOff, ArrowRight, Info } from "lucide-react";
+import { Copy, Mail, Eye, EyeOff, ArrowRight, Info, LogOut, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [hideApiKey, setHideApiKey] = useState(true);
   const apiKey = "inbx_JKlrEs9372Hp42Mx8zKv1Q6aBcDeF";
   const [requests, setRequests] = useState(0);
   const [submissions, setSubmissions] = useState(0);
+  
+  // Example user data - in a real app, this would come from your auth system
+  const user = {
+    name: "Jean Dupont",
+    email: "jean.dupont@example.com",
+    avatarUrl: "", // Empty for now, will use fallback
+  };
   
   // Simuler des statistiques pour la démo
   React.useEffect(() => {
@@ -24,12 +34,39 @@ const Dashboard = () => {
     navigator.clipboard.writeText(apiKey);
     toast.success("Clé API copiée dans le presse-papier");
   };
+  
+  const handleLogout = () => {
+    // In a real app, you would clear authentication state here
+    toast.success("Déconnexion réussie");
+    // Redirect to homepage after logout
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-12">
       <div className="container mx-auto">
         <div className="flex flex-col space-y-6">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            
+            {/* User Profile and Logout */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 bg-slate-100 p-2 rounded-lg">
+                <Avatar>
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
+                  <AvatarFallback className="bg-blue-100 text-blue-800">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block">
+                  <p className="font-medium text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+              </div>
+              <Button variant="outline" className="gap-2" onClick={handleLogout}>
+                <LogOut size={18} />
+                <span className="hidden md:inline">Déconnexion</span>
+              </Button>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Statistiques */}
@@ -66,6 +103,30 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+          
+          {/* Profil utilisateur */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Profil utilisateur</CardTitle>
+              <CardDescription>Informations de votre compte</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Nom</label>
+                  <Input value={user.name} readOnly className="bg-gray-50" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <Input value={user.email} readOnly className="bg-gray-50" />
+                </div>
+              </div>
+              <div className="flex items-center">
+                <User size={18} className="text-blue-600 mr-2" />
+                <span className="text-sm text-blue-600">Compte standard</span>
+              </div>
+            </CardContent>
+          </Card>
           
           {/* Clé API */}
           <Card className="mt-6">
