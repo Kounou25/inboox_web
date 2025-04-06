@@ -40,29 +40,60 @@ const VerifyOTP = () => {
         toast.error("Veuillez entrer un code à 6 chiffres");
         return;
       }
-  
-      // Envoi de la requête au endpoint
-      const response = await fetch('/api/otp/verifyOtp', {  // Chemin relatif grâce au proxy Vite
+
+      // Récupération des informations de l'utilisateur
+      const email = location.state?.email;
+      const userResponse = await fetch(`http://localhost:3000/api/users/userProfile/${email}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const userData = await userResponse.json();
+      
+      if (!userResponse.ok) {
+        throw new Error(userData.error || 'Erreur lors de la récupération du profil utilisateur');
+      }
+
+      // Vérification de l'OTP
+      const otpResponse = await fetch('/api/otp/verifyOtp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: location.state?.email,  // Récupère l'email passé via navigate
+          email: email,
           otp: otp,
         }),
       });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de la vérification de l\'OTP');
+
+      const otpResult = await otpResponse.json();
+
+      if (!otpResponse.ok) {
+        throw new Error(otpResult.error || 'Erreur lors de la vérification de l\'OTP');
       }
-  
-      // Si succès
+
+      // Envoi du user_id au endpoint OTP après vérification réussie
+      const sendUserIdResponse = await fetch('http://localhost:3000/api/apiKeys/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userData.id  // On suppose que l'API retourne un champ user_id
+        }),
+      });
+
+      if (!sendUserIdResponse.ok) {
+        throw new Error('Erreur lors de l\'envoi du user_id');
+      }
+
+      // Si tout est OK
       toast.success("Vérification réussie!");
-      localStorage.setItem("userEmail", location.state?.email);
+      localStorage.setItem("userEmail", email);
       navigate("/dashboard");
+
     } catch (error) {
       console.error('Erreur détaillée:', error);
       toast.error(error.message || "Une erreur est survenue lors de la vérification");
