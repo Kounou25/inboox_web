@@ -33,18 +33,38 @@ const VerifyOTP = () => {
     return () => clearInterval(timer);
   }, [isResending]);
 
-  const handleVerify = () => {
-    // Ici, nous simulons la vérification du code OTP
-    console.log("Code OTP soumis:", otp);
-    
-    if (otp.length === 6) {
-      // Simulation d'une vérification réussie
+  const handleVerify = async () => {
+    try {
+      // Vérification de base avant envoi
+      if (otp.length !== 6) {
+        toast.error("Veuillez entrer un code à 6 chiffres");
+        return;
+      }
+  
+      // Envoi de la requête au endpoint
+      const response = await fetch('/api/otp/verifyOtp', {  // Chemin relatif grâce au proxy Vite
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: location.state?.email,  // Récupère l'email passé via navigate
+          otp: otp,
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(result.error || 'Erreur lors de la vérification de l\'OTP');
+      }
+  
+      // Si succès
       toast.success("Vérification réussie!");
-      
-      // Redirection vers le dashboard
       navigate("/dashboard");
-    } else {
-      toast.error("Veuillez entrer un code à 6 chiffres");
+    } catch (error) {
+      console.error('Erreur détaillée:', error);
+      toast.error(error.message || "Une erreur est survenue lors de la vérification");
     }
   };
 

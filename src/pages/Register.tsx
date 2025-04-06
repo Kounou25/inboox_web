@@ -34,15 +34,51 @@ const Register = () => {
     },
   });
 
-  const onSubmit = (data: RegisterFormValues) => {
-    // Ici, nous simulons l'envoi des données d'inscription
-    console.log("Données d'inscription:", data);
-    
-    // Simulation d'une inscription réussie
-    toast.success("Inscription réussie! Vérification par email nécessaire");
-    
-    // Redirection vers la page de vérification OTP
-    navigate("/verify-otp", { state: { email: data.email } });
+  const onSubmit = async (data: RegisterFormValues) => {
+    try {
+      // Étape 1 : Inscription de l'utilisateur
+      const registerResponse = await fetch('/api/users', {  // Chemin relatif avec proxy
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password
+        }),
+      });
+  
+      const registerResult = await registerResponse.json();
+  
+      if (!registerResponse.ok) {
+        throw new Error(registerResult.error || 'Erreur lors de l\'inscription');
+      }
+  
+      // Étape 2 : Envoi de l'email au endpoint /api/otp après inscription réussie
+      const otpResponse = await fetch('/api/otp', {  // Chemin relatif avec proxy
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email
+        }),
+      });
+  
+      const otpResult = await otpResponse.json();
+  
+      if (!otpResponse.ok) {
+        throw new Error(otpResult.error || 'Erreur lors de l\'envoi de l\'OTP');
+      }
+  
+      // Si tout est OK
+      toast.success("Inscription réussie! Vérification par email nécessaire");
+      navigate("/verify-otp", { state: { email: data.email } });
+    } catch (error) {
+      console.error('Erreur détaillée:', error);
+      toast.error(error.message || "Une erreur est survenue lors de l'inscription");
+    }
   };
 
   return (
