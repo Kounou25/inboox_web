@@ -26,15 +26,42 @@ const Login = () => {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    // Ici, nous simulons l'envoi des données de connexion
-    console.log("Données de connexion:", data);
-    
-    // Simulation d'une connexion réussie
-    toast.success("Connexion réussie!");
-    
-    // Redirection vers le dashboard
-    navigate("/dashboard");
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erreur lors de la connexion');
+      }
+
+      localStorage.setItem('userEmail', result.user.email);
+      toast.success('Connexion réussie !');
+
+      switch (result.user.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'user':
+          navigate('/dashboard');
+          break;
+        default:
+          navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Erreur détaillée:', error);
+      toast.error(error.message || 'Une erreur est survenue lors de la connexion');
+    }
   };
 
   return (

@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [hideApiKey, setHideApiKey] = useState(true);
-  const apiKey = "inbx_JKlrEs9372Hp42Mx8zKv1Q6aBcDeF";
   const [requests, setRequests] = useState(0);
   const [submissions, setSubmissions] = useState(0);
   const userEmail = localStorage.getItem("userEmail");
@@ -24,35 +23,56 @@ const Dashboard = () => {
   });
 
   // Récupération du profil utilisateur
+  const [apiKey, setApiKey] = useState(""); // État pour la clé API
+
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/users/userProfile/${userEmail}`, {
+        // Étape 1 : Récupérer le profil utilisateur
+        const userResponse = await fetch(`/api/users/userProfile/${userEmail}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
 
-        const result = await response.json();
+        const userResult = await userResponse.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || "Erreur lors de la récupération du profil");
+        if (!userResponse.ok) {
+          throw new Error(userResult.error || "Erreur lors de la récupération du profil");
         }
 
         setUser({
-          name: result.full_name,
-          email: result.email,
-          avatarUrl: result.avatarUrl || "",
+          name: userResult.full_name,
+          email: userResult.email,
+          avatarUrl: userResult.avatarUrl || "",
         });
+
+        // Étape 2 : Récupérer la clé API
+        const userId = userResult.id;
+        console.log(userId);
+        const apiKeyResponse = await fetch(`/api/apiKeys/keyById/${userId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const apiKeyResult = await apiKeyResponse.json();
+
+        if (!apiKeyResponse.ok) {
+          throw new Error(apiKeyResult.error || "Erreur lors de la récupération de la clé API");
+        }
+
+        setApiKey(apiKeyResult.key); // Mise à jour de la clé API
       } catch (error) {
         console.error("Erreur détaillée:", error);
-        toast.error(error.message || "Erreur lors de la récupération du profil");
+        toast.error(error.message || "Erreur lors de la récupération des données");
       }
     };
 
     if (userEmail) {
-      fetchUserProfile();
+      fetchUserData();
     }
   }, [userEmail]);
 
