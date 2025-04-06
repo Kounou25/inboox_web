@@ -1,13 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 
 const VerifyOTP = () => {
   const location = useLocation();
@@ -15,11 +9,11 @@ const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const email = location.state?.email || "votre email";
 
   useEffect(() => {
-    // Démarrer le compte à rebours
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -34,14 +28,13 @@ const VerifyOTP = () => {
   }, [isResending]);
 
   const handleVerify = async () => {
+    setIsLoading(true);
     try {
-      // Vérification de base avant envoi
       if (otp.length !== 6) {
         toast.error("Veuillez entrer un code à 6 chiffres");
         return;
       }
 
-      // Récupération des informations de l'utilisateur
       const email = location.state?.email;
       const userResponse = await fetch(`http://localhost:3000/api/users/userProfile/${email}`, {
         method: 'GET',
@@ -56,7 +49,6 @@ const VerifyOTP = () => {
         throw new Error(userData.error || 'Erreur lors de la récupération du profil utilisateur');
       }
 
-      // Vérification de l'OTP
       const otpResponse = await fetch('/api/otp/verifyOtp', {
         method: 'POST',
         headers: {
@@ -74,14 +66,13 @@ const VerifyOTP = () => {
         throw new Error(otpResult.error || 'Erreur lors de la vérification de l\'OTP');
       }
 
-      // Envoi du user_id au endpoint OTP après vérification réussie
       const sendUserIdResponse = await fetch('http://localhost:3000/api/apiKeys/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userData.id  // On suppose que l'API retourne un champ user_id
+          user_id: userData.id
         }),
       });
 
@@ -89,7 +80,6 @@ const VerifyOTP = () => {
         throw new Error('Erreur lors de l\'envoi du user_id');
       }
 
-      // Si tout est OK
       toast.success("Vérification réussie!");
       localStorage.setItem("userEmail", email);
       navigate("/dashboard");
@@ -97,19 +87,32 @@ const VerifyOTP = () => {
     } catch (error) {
       console.error('Erreur détaillée:', error);
       toast.error(error.message || "Une erreur est survenue lors de la vérification");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleResendCode = () => {
     if (countdown === 0) {
       setIsResending(true);
-      
-      // Simuler l'envoi d'un nouveau code
       setTimeout(() => {
         toast.success("Un nouveau code a été envoyé à votre email");
         setCountdown(60);
         setIsResending(false);
       }, 1500);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (/^[0-9]$/.test(value) || value === "") {
+      const newOtp = otp.split("");
+      newOtp[index] = value;
+      setOtp(newOtp.join(""));
+      
+      // Déplacer le focus au champ suivant si un chiffre est entré
+      if (value && index < 5) {
+        document.getElementById(`otp-input-${index + 1}`).focus();
+      }
     }
   };
 
@@ -124,27 +127,53 @@ const VerifyOTP = () => {
         </div>
         
         <div className="flex flex-col items-center space-y-6">
-          <div className="w-full flex justify-center">
-            <InputOTP
-              maxLength={6}
-              value={otp}
-              onChange={(value) => setOtp(value)}
-              render={({ slots }) => (
-                <InputOTPGroup>
-                  {slots.map((slot, index) => (
-                    <InputOTPSlot key={index} index={index} />
-                  ))}
-                </InputOTPGroup>
-              )}
-            />
+          <div className="w-full flex justify-center gap-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <input
+                key={index}
+                id={`otp-input-${index}`}
+                type="text"
+                maxLength={1}
+                value={otp[index] || ""}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                disabled={isLoading}
+                className="w-12 h-12 text-center text-blue-600 font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              />
+            ))}
           </div>
           
           <Button 
             className="w-full" 
             onClick={handleVerify}
-            disabled={otp.length !== 6}
+            disabled={otp.length !== 6 || isLoading}
           >
-            Vérifier
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Vérification...
+              </div>
+            ) : (
+              "Vérifier"
+            )}
           </Button>
           
           <div className="text-center text-sm">
