@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react"; // Ajout de useState
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,6 +17,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false); // Nouvel état pour le chargement
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -27,6 +27,7 @@ const Login = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    setIsLoading(true); // Début du chargement
     try {
       const response = await fetch('http://localhost:3000/api/users/login', {
         method: 'POST',
@@ -61,6 +62,8 @@ const Login = () => {
     } catch (error) {
       console.error('Erreur détaillée:', error);
       toast.error(error.message || 'Une erreur est survenue lors de la connexion');
+    } finally {
+      setIsLoading(false); // Fin du chargement
     }
   };
 
@@ -85,6 +88,7 @@ const Login = () => {
                       type="email" 
                       placeholder="vous@exemple.com" 
                       {...field} 
+                      disabled={isLoading} // Désactive l'input pendant le chargement
                     />
                   </FormControl>
                   <FormMessage />
@@ -103,6 +107,7 @@ const Login = () => {
                       type="password" 
                       placeholder="********" 
                       {...field} 
+                      disabled={isLoading} // Désactive l'input pendant le chargement
                     />
                   </FormControl>
                   <FormMessage />
@@ -116,8 +121,38 @@ const Login = () => {
               </Link>
             </div>
             
-            <Button type="submit" className="w-full">
-              Se connecter
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading} // Désactive le bouton pendant le chargement
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Connexion...
+                </div>
+              ) : (
+                "Se connecter"
+              )}
             </Button>
           </form>
         </Form>
