@@ -61,6 +61,7 @@ const VerifyOTP = () => {
   
       // Si succès
       toast.success("Vérification réussie!");
+      localStorage.setItem("userEmail", location.state?.email);
       navigate("/dashboard");
     } catch (error) {
       console.error('Erreur détaillée:', error);

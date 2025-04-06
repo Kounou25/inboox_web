@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,17 +14,50 @@ const Dashboard = () => {
   const apiKey = "inbx_JKlrEs9372Hp42Mx8zKv1Q6aBcDeF";
   const [requests, setRequests] = useState(0);
   const [submissions, setSubmissions] = useState(0);
-  
-  // Example user data - in a real app, this would come from your auth system
-  const user = {
-    name: "Jean Dupont",
-    email: "jean.dupont@example.com",
+  const userEmail = localStorage.getItem("userEmail");
+
+  // État pour les données utilisateur
+  const [user, setUser] = useState({
+    name: "Jean Dupont", // Valeur par défaut avant chargement
+    email: userEmail || "email@example.com",
     avatarUrl: "", // Empty for now, will use fallback
-  };
-  
-  // Simuler des statistiques pour la démo
-  React.useEffect(() => {
-    // Générer des chiffres aléatoires
+  });
+
+  // Récupération du profil utilisateur
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/users/userProfile/${userEmail}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Erreur lors de la récupération du profil");
+        }
+
+        setUser({
+          name: result.full_name,
+          email: result.email,
+          avatarUrl: result.avatarUrl || "",
+        });
+      } catch (error) {
+        console.error("Erreur détaillée:", error);
+        toast.error(error.message || "Erreur lors de la récupération du profil");
+      }
+    };
+
+    if (userEmail) {
+      fetchUserProfile();
+    }
+  }, [userEmail]);
+
+  // Simuler des statistiques
+  useEffect(() => {
     setRequests(Math.floor(Math.random() * 150) + 50);
     setSubmissions(Math.floor(Math.random() * 50) + 10);
   }, []);
@@ -34,12 +66,10 @@ const Dashboard = () => {
     navigator.clipboard.writeText(apiKey);
     toast.success("Clé API copiée dans le presse-papier");
   };
-  
+
   const handleLogout = () => {
-    // In a real app, you would clear authentication state here
     toast.success("Déconnexion réussie");
-    // Redirect to homepage after logout
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -48,13 +78,15 @@ const Dashboard = () => {
         <div className="flex flex-col space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            
+
             {/* User Profile and Logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3 bg-slate-100 p-2 rounded-lg">
                 <Avatar>
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="bg-blue-100 text-blue-800">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  <AvatarFallback className="bg-blue-100 text-blue-800">
+                    {user.name.split(" ").map((n) => n[0]).join("")}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
                   <p className="font-medium text-sm">{user.name}</p>
@@ -67,7 +99,7 @@ const Dashboard = () => {
               </Button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Statistiques */}
             <Card>
@@ -79,7 +111,7 @@ const Dashboard = () => {
                 <p className="text-3xl font-bold">{requests}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Formulaires soumis</CardTitle>
@@ -89,7 +121,7 @@ const Dashboard = () => {
                 <p className="text-3xl font-bold">{submissions}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Status</CardTitle>
@@ -103,7 +135,7 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Profil utilisateur */}
           <Card className="mt-6">
             <CardHeader>
@@ -127,7 +159,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Clé API */}
           <Card className="mt-6">
             <CardHeader>
@@ -138,13 +170,13 @@ const Dashboard = () => {
               <div className="flex flex-col space-y-4">
                 <div className="flex">
                   <div className="relative flex-grow">
-                    <Input 
-                      type={hideApiKey ? "password" : "text"} 
+                    <Input
+                      type={hideApiKey ? "password" : "text"}
                       value={apiKey}
                       className="pr-10 font-mono"
                       readOnly
                     />
-                    <button 
+                    <button
                       className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       onClick={() => setHideApiKey(!hideApiKey)}
                     >
@@ -156,7 +188,7 @@ const Dashboard = () => {
                     Copier
                   </Button>
                 </div>
-                
+
                 <Alert className="bg-blue-50 border-blue-200">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertTitle className="text-blue-800">Important</AlertTitle>
@@ -167,7 +199,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Comment intégrer */}
           <Card className="mt-6">
             <CardHeader>
@@ -187,7 +219,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold mr-4">
                     2
@@ -199,7 +231,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold mr-4">
                     3
@@ -211,7 +243,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="mt-4">
                   <Button variant="default" className="group">
                     Voir la documentation complète
