@@ -13,8 +13,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [hideApiKey, setHideApiKey] = useState(true);
-  const [requests, setRequests] = useState(0);
-  const [submissions, setSubmissions] = useState(0);
+  const [emailData, setEmailData] = useState([]); // État pour les données des emails
   const userEmail = localStorage.getItem("userEmail");
 
   const [user, setUser] = useState({
@@ -25,26 +24,39 @@ const Dashboard = () => {
 
   const [apiKey, setApiKey] = useState("");
 
-  // Données simulées pour les graphiques (7 jours de la semaine)
-  const requestData = [
-    { name: "Lun", value: 50 },
-    { name: "Mar", value: 80 },
-    { name: "Mer", value: 60 },
-    { name: "Jeu", value: 90 },
-    { name: "Ven", value: 70 },
-    { name: "Sam", value: 40 },
-    { name: "Dim", value: requests },
-  ];
+  // Récupération des données des emails depuis l'endpoint
+  useEffect(() => {
+    const fetchEmailData = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/messages/emailCount/50b65378-3505-4f86-8c0a-cab17a2184b3",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-  const submissionData = [
-    { name: "Lun", value: 10 },
-    { name: "Mar", value: 100 },
-    { name: "Mer", value: 15 },
-    { name: "Jeu", value: 25 },
-    { name: "Ven", value: 18 },
-    { name: "Sam", value: 12 },
-    { name: "Dim", value: submissions },
-  ];
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des données des emails");
+        }
+
+        const result = await response.json();
+        // Transformation des données pour correspondre au format attendu par Recharts
+        const formattedData = result.data.map((item) => ({
+          name: item.day_name.substring(0, 3), // Abréger le nom du jour (ex: "Monday" -> "Mon")
+          value: item.total_sent,
+        }));
+        setEmailData(formattedData);
+      } catch (error) {
+        console.error("Erreur:", error);
+        toast.error("Erreur lors de la récupération des données des emails");
+      }
+    };
+
+    fetchEmailData();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -96,11 +108,6 @@ const Dashboard = () => {
     }
   }, [userEmail]);
 
-  useEffect(() => {
-    setRequests(Math.floor(Math.random() * 150) + 50);
-    setSubmissions(Math.floor(Math.random() * 50) + 10);
-  }, []);
-
   const copyApiKey = () => {
     navigator.clipboard.writeText(apiKey);
     toast.success("Clé API copiée dans le presse-papier");
@@ -110,6 +117,9 @@ const Dashboard = () => {
     toast.success("Déconnexion réussie");
     navigate("/");
   };
+
+  // Calcul du total des messages reçus pour affichage
+  const totalMessages = emailData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-gray-50">
@@ -172,19 +182,19 @@ const Dashboard = () => {
             >
               <Card className="shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-blue-700">Requêtes API</CardTitle>
+                  <CardTitle className="text-lg text-blue-700">Messages Reçus</CardTitle>
                   <CardDescription className="text-gray-600">Cette semaine</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={requestData}>
+                    <LineChart data={emailData}>
                       <XAxis dataKey="name" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
                       <Tooltip />
                       <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
-                  <p className="text-2xl font-semibold text-blue-600 mt-4">{requests}</p>
+                  <p className="text-2xl font-semibold text-blue-600 mt-4">{totalMessages}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -195,19 +205,19 @@ const Dashboard = () => {
             >
               <Card className="shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-blue-700">Formulaires Soumis</CardTitle>
+                  <CardTitle className="text-lg text-blue-700">Messages Reçus</CardTitle>
                   <CardDescription className="text-gray-600">Cette semaine</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={submissionData}>
+                    <BarChart data={emailData}>
                       <XAxis dataKey="name" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
                       <Tooltip />
                       <Bar dataKey="value" fill="#10b981" />
                     </BarChart>
                   </ResponsiveContainer>
-                  <p className="text-2xl font-semibold text-blue-600 mt-4">{submissions}</p>
+                  <p className="text-2xl font-semibold text-blue-600 mt-4">{totalMessages}</p>
                 </CardContent>
               </Card>
             </motion.div>
