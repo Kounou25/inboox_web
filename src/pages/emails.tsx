@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,33 +8,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Reply, Send, Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // Pour la navigation
+import { useNavigate } from "react-router-dom";
 
 const MessagesPageEnhanced = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      fullName: "Jean Dupont",
-      subject: "Demande d'information",
-      email: "jean.dupont@example.com",
-      message: "Bonjour, je voudrais plus d'infos sur vos services.",
-      sentDate: "2025-04-07",
-    },
-    {
-      id: 2,
-      fullName: "Marie Curie",
-      subject: "Problème technique",
-      email: "marie.curie@example.com",
-      message: "J'ai rencontré un bug sur votre plateforme.",
-      sentDate: "2025-04-06",
-    },
-  ]);
-
+  const [messages, setMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [replyMessage, setReplyMessage] = useState("");
-  const [messageToDelete, setMessageToDelete] = useState(null); // Pour la confirmation de suppression
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Récupération des messages depuis l'API
+  useEffect(() => {
+    const fetchMessages = async () => {
+      // Récupération du UUID depuis localStorage
+      const uuid = localStorage.getItem('uuid'); // Assurez-vous que la clé correspond à celle utilisée dans votre application
+      
+      if (!uuid) {
+        toast.error("Aucun identifiant utilisateur trouvé");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:3000/api/messages/${uuid}`);
+        const data = await response.json();
+        
+        // Transformation des données au format attendu par le composant
+        const formattedMessages = data.map((msg) => ({
+          id: msg.id,
+          fullName: msg.sender_name,
+          subject: msg.subject,
+          email: msg.to_email,
+          message: msg.body,
+          sentDate: new Date(msg.sent_at).toISOString().split('T')[0]
+        }));
+        
+        setMessages(formattedMessages);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des messages:', error);
+        toast.error("Erreur lors du chargement des messages");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, []); // Tableau de dépendances vide car on ne veut charger qu'au montage
 
   const filteredMessages = messages.filter(
     (msg) =>
@@ -46,7 +68,7 @@ const MessagesPageEnhanced = () => {
   const handleDelete = (id) => {
     setMessages(messages.filter((msg) => msg.id !== id));
     setSelectedMessage(null);
-    setMessageToDelete(null); // Ferme le popup de confirmation
+    setMessageToDelete(null);
     toast.success("Message supprimé avec succès");
   };
 
@@ -70,7 +92,7 @@ const MessagesPageEnhanced = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(-1)} // Retour à la page précédente
+                  onClick={() => navigate(-1)}
                   className="text-white hover:bg-indigo-700"
                 >
                   <ArrowLeft size={20} />
@@ -81,70 +103,76 @@ const MessagesPageEnhanced = () => {
             <p className="text-sm opacity-80">Gérez vos messages avec style et simplicité</p>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="mb-6 flex items-center gap-2">
-              <Search size={20} className="text-gray-500" />
-              <Input
-                placeholder="Rechercher par nom, sujet ou email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
+            {loading ? (
+              <p className="text-center text-gray-500">Chargement des messages...</p>
+            ) : (
+              <>
+                <div className="mb-6 flex items-center gap-2">
+                  <Search size={20} className="text-gray-500" />
+                  <Input
+                    placeholder="Rechercher par nom, sujet ou email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="max-w-md"
+                  />
+                </div>
 
-            <div className="grid gap-4">
-              {filteredMessages.length === 0 ? (
-                <p className="text-center text-gray-500">Aucun message trouvé.</p>
-              ) : (
-                filteredMessages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card
-                      className="hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => setSelectedMessage(msg)}
-                    >
-                      <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-indigo-700">{msg.subject}</h3>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">{msg.fullName}</span> - {msg.email}
-                          </p>
-                          <p className="text-gray-700 mt-1 truncate">{msg.message}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <p className="text-xs text-gray-500">{msg.sentDate}</p>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedMessage(msg);
-                              }}
-                            >
-                              <Reply size={16} className="text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMessageToDelete(msg); // Ouvre le popup de confirmation
-                              }}
-                            >
-                              <Trash2 size={16} className="text-red-600" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))
-              )}
-            </div>
+                <div className="grid gap-4">
+                  {filteredMessages.length === 0 ? (
+                    <p className="text-center text-gray-500">Aucun message trouvé.</p>
+                  ) : (
+                    filteredMessages.map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Card
+                          className="hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => setSelectedMessage(msg)}
+                        >
+                          <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start gap-4">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg text-indigo-700">{msg.subject}</h3>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">{msg.fullName}</span> - {msg.email}
+                              </p>
+                              <p className="text-gray-700 mt-1 truncate">{msg.message}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <p className="text-xs text-gray-500">{msg.sentDate}</p>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedMessage(msg);
+                                  }}
+                                >
+                                  <Reply size={16} className="text-blue-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMessageToDelete(msg);
+                                  }}
+                                >
+                                  <Trash2 size={16} className="text-red-600" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

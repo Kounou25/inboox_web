@@ -69,6 +69,7 @@ const Dashboard = () => {
         });
 
         const userId = userResult.id;
+        localStorage.setItem("uuid", userId);
         console.log(userId);
         const apiKeyResponse = await fetch(`/api/apiKeys/keyById/${userId}`, {
           method: "GET",
