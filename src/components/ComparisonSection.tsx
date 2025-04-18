@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check, X } from 'lucide-react';
 
@@ -13,46 +12,46 @@ interface ComparisonFeature {
 const ComparisonSection = () => {
   const comparisonFeatures: ComparisonFeature[] = [
     {
-      name: "Configuration sans backend",
+      name: "Backend-free configuration",
       inboox: true,
       formspree: true,
       netlifyForms: true,
       formKeep: true
     },
     {
-      name: "Notifications par email",
+      name: "Email alerts for new submissions",
+      inboox: true,
+      formspree: true, // Formspree can send email notifications
+      netlifyForms: true, // Netlify Forms supports email notifications
+      formKeep: true // FormKeep supports email notifications
+    },
+    {
+      name: "Dashboard for submission storage",
+      inboox: true,
+      formspree: false, // Formspree focuses on email, no native dashboard
+      netlifyForms: true, // Netlify provides a dashboard
+      formKeep: true // FormKeep provides a dashboard
+    },
+    {
+      name: "Easy integration",
       inboox: true,
       formspree: true,
-      netlifyForms: true,
+      netlifyForms: false, // Requires Netlify hosting
       formKeep: true
     },
     {
-      name: "Intégration facile",
+      name: "Compatible with any website",
       inboox: true,
       formspree: true,
-      netlifyForms: false,
+      netlifyForms: false, // Tied to Netlify platform
       formKeep: true
     },
     {
-      name: "Compatible tout site web",
+      name: "Framework-independent",
       inboox: true,
       formspree: true,
-      netlifyForms: false,
-      formKeep: true
-    },
-    {
-      name: "Sans dépendance framework",
-      inboox: true,
-      formspree: true,
-      netlifyForms: false,
-      formKeep: false
-    },
-    {
-      name: "Solution légère",
-      inboox: true,
-      formspree: false,
-      netlifyForms: false,
-      formKeep: false
+      netlifyForms: false, // Works best within Netlify ecosystem
+      formKeep: false // May require specific setup
     }
   ];
 
@@ -60,17 +59,17 @@ const ComparisonSection = () => {
     <section id="comparison" className="py-16 px-4">
       <div className="container mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Comment <span className="text-gradient-blue">Inboox</span> se compare
+          How <span className="text-gradient-blue">Inboox</span> compares
         </h2>
         <p className="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">
-          Découvrez pourquoi Inboox est la solution idéale pour gérer vos formulaires sans backend.
+          See why Inboox stands out for storing form submissions on a dashboard with email alerts, all without a backend.
         </p>
         
         <div className="max-w-5xl mx-auto overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-50">
-                <th className="p-4 text-left font-semibold text-gray-700 border-b">Fonctionnalité</th>
+                <th className="p-4 text-left font-semibold text-gray-700 border-b">Feature</th>
                 <th className="p-4 text-center font-semibold text-blue-600 border-b">Inboox</th>
                 <th className="p-4 text-center font-semibold text-gray-700 border-b">Formspree</th>
                 <th className="p-4 text-center font-semibold text-gray-700 border-b">Netlify Forms</th>

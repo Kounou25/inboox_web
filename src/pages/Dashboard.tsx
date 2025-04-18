@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Copy, Mail, Eye, EyeOff, ArrowRight, Info, LogOut, User, MessageSquare } from "lucide-react";
+import { Copy, Eye, EyeOff, ArrowRight, Info, LogOut, User, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -13,51 +13,19 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [hideApiKey, setHideApiKey] = useState(true);
-  const [emailData, setEmailData] = useState([]); // État pour les données des emails
+  const [emailData, setEmailData] = useState([]); // State for email data
   const userEmail = localStorage.getItem("userEmail");
 
   const [user, setUser] = useState({
-    name: "Jean Dupont",
+    name: "John Doe", // Changed default name to an English equivalent
     email: userEmail || "email@example.com",
     avatarUrl: "",
+    id: "",
   });
 
   const [apiKey, setApiKey] = useState("");
 
-  // Récupération des données des emails depuis l'endpoint
-  useEffect(() => {
-    const fetchEmailData = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:3000/api/messages/emailCount/50b65378-3505-4f86-8c0a-cab17a2184b3",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des données des emails");
-        }
-
-        const result = await response.json();
-        // Transformation des données pour correspondre au format attendu par Recharts
-        const formattedData = result.data.map((item) => ({
-          name: item.day_name.substring(0, 3), // Abréger le nom du jour (ex: "Monday" -> "Mon")
-          value: item.total_sent,
-        }));
-        setEmailData(formattedData);
-      } catch (error) {
-        console.error("Erreur:", error);
-        toast.error("Erreur lors de la récupération des données des emails");
-      }
-    };
-
-    fetchEmailData();
-  }, []);
-
+  // Fetch user data and API key
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -71,19 +39,19 @@ const Dashboard = () => {
         const userResult = await userResponse.json();
 
         if (!userResponse.ok) {
-          throw new Error(userResult.error || "Erreur lors de la récupération du profil");
+          throw new Error(userResult.error || "Error fetching profile");
         }
 
-        setUser({
+        const updatedUser = {
           name: userResult.full_name,
           email: userResult.email,
           avatarUrl: userResult.avatarUrl || "",
-        });
+          id: userResult.id,
+        };
+        setUser(updatedUser);
+        localStorage.setItem("uuid", userResult.id);
 
-        const userId = userResult.id;
-        localStorage.setItem("uuid", userId);
-        console.log(userId);
-        const apiKeyResponse = await fetch(`/api/apiKeys/keyById/${userId}`, {
+        const apiKeyResponse = await fetch(`/api/apiKeys/keyById/${userResult.id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -93,13 +61,13 @@ const Dashboard = () => {
         const apiKeyResult = await apiKeyResponse.json();
 
         if (!apiKeyResponse.ok) {
-          throw new Error(apiKeyResult.error || "Erreur lors de la récupération de la clé API");
+          throw new Error(apiKeyResult.error || "Error fetching API key");
         }
 
         setApiKey(apiKeyResult.key);
       } catch (error) {
-        console.error("Erreur détaillée:", error);
-        toast.error(error.message || "Erreur lors de la récupération des données");
+        console.error("Detailed error:", error);
+        toast.error(error.message || "Error fetching data");
       }
     };
 
@@ -108,17 +76,53 @@ const Dashboard = () => {
     }
   }, [userEmail]);
 
+  // Fetch email data from the endpoint with user.id as dependency
+  useEffect(() => {
+    const fetchEmailData = async () => {
+      if (!user.id) return; // Do nothing if user.id is not yet defined
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/messages/emailCount/${user.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error fetching email data");
+        }
+
+        const result = await response.json();
+        // Transform data to match Recharts expected format
+        const formattedData = result.data.map((item) => ({
+          name: item.day_name.substring(0, 3), // Shorten day name (e.g., "Monday" -> "Mon")
+          value: item.total_sent,
+        }));
+        setEmailData(formattedData);
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("Error fetching email data");
+      }
+    };
+
+    fetchEmailData();
+  }, [user.id]); // Dependency on user.id to ensure it’s available
+
   const copyApiKey = () => {
     navigator.clipboard.writeText(apiKey);
-    toast.success("Clé API copiée dans le presse-papier");
+    toast.success("API key copied to clipboard");
   };
 
   const handleLogout = () => {
-    toast.success("Déconnexion réussie");
+    toast.success("Logout successful");
     navigate("/");
   };
 
-  // Calcul du total des messages reçus pour affichage
+  // Calculate total received messages for display
   const totalMessages = emailData.reduce((sum, item) => sum + item.value, 0);
 
   return (
@@ -130,8 +134,8 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col space-y-10"
         >
-          {/* En-tête */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-white p-6 rounded-lg shadow-sm">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap✔-6 bg-white p-6 rounded-lg shadow-sm">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex items-center gap-4">
               <motion.div
@@ -148,7 +152,7 @@ const Dashboard = () => {
                   <p className="font-medium text-sm text-gray-800">{user.name}</p>
                   <div className="flex items-center">
                     <div className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                    <span className="text-xs text-green-700">Actif</span>
+                    <span className="text-xs text-green-700">Active</span>
                   </div>
                 </div>
               </motion.div>
@@ -167,13 +171,13 @@ const Dashboard = () => {
                   onClick={handleLogout}
                 >
                   <LogOut size={18} />
-                  <span className="hidden md:inline">Déconnexion</span>
+                  <span className="hidden md:inline">Logout</span>
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Statistiques avec Graphiques */}
+          {/* Statistics with Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -182,8 +186,8 @@ const Dashboard = () => {
             >
               <Card className="shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-blue-700">Messages Reçus</CardTitle>
-                  <CardDescription className="text-gray-600">Cette semaine</CardDescription>
+                  <CardTitle className="text-lg text-blue-700">Received Messages</CardTitle>
+                  <CardDescription className="text-gray-600">This week</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ResponsiveContainer width="100%" height={200}>
@@ -205,8 +209,8 @@ const Dashboard = () => {
             >
               <Card className="shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-blue-700">Messages Reçus</CardTitle>
-                  <CardDescription className="text-gray-600">Cette semaine</CardDescription>
+                  <CardTitle className="text-lg text-blue-700">Received Messages</CardTitle>
+                  <CardDescription className="text-gray-600">This week</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <ResponsiveContainer width="100%" height={200}>
@@ -223,16 +227,16 @@ const Dashboard = () => {
             </motion.div>
           </div>
 
-          {/* Profil utilisateur */}
+          {/* User Profile */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-blue-700">Profil Utilisateur</CardTitle>
-              <CardDescription className="text-gray-600">Informations de votre compte</CardDescription>
+              <CardTitle className="text-xl text-blue-700">User Profile</CardTitle>
+              <CardDescription className="text-gray-600">Your account information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Nom</label>
+                  <label className="text-sm font-medium text-gray-700">Name</label>
                   <Input
                     value={user.name}
                     readOnly
@@ -250,17 +254,17 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center">
                 <User size={18} className="text-blue-600 mr-2" />
-                <span className="text-sm text-blue-600">Compte standard</span>
+                <span className="text-sm text-blue-600">Standard Account</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Clé API */}
+          {/* API Key */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-blue-700">Votre Clé API</CardTitle>
+              <CardTitle className="text-xl text-blue-700">Your API Key</CardTitle>
               <CardDescription className="text-gray-600">
-                Utilisez cette clé pour intégrer Inboox
+                Use this key to integrate Inboox
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -285,41 +289,41 @@ const Dashboard = () => {
                   onClick={copyApiKey}
                 >
                   <Copy size={18} className="mr-2" />
-                  Copier
+                  Copy
                 </Button>
               </div>
               <Alert className="bg-blue-50 border-blue-200">
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertTitle className="text-blue-800">Important</AlertTitle>
                 <AlertDescription className="text-blue-700">
-                  Ne partagez jamais votre clé API publiquement.
+                  Never share your API key publicly.
                 </AlertDescription>
               </Alert>
             </CardContent>
           </Card>
 
-          {/* Comment intégrer */}
+          {/* How to Integrate */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-blue-700">Comment Intégrer Inboox</CardTitle>
-              <CardDescription className="text-gray-600">Étapes simples pour commencer</CardDescription>
+              <CardTitle className="text-xl text-blue-700">How to Integrate Inboox</CardTitle>
+              <CardDescription className="text-gray-600">Simple steps to get started</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-8">
               {[
                 {
                   step: 1,
-                  title: "Configurez votre formulaire HTML",
-                  desc: "Ajoutez l'attribut <code class='bg-gray-100 px-1 py-0.5 rounded'>data-inboox</code> à votre formulaire et incluez un champ email.",
+                  title: "Set up your HTML form",
+                  desc: "Add the <code class='bg-gray-100 px-1 py-0.5 rounded'>data-inboox</code> attribute to your form and include an email field.",
                 },
                 {
                   step: 2,
-                  title: "Intégrez votre clé API",
-                  desc: "Configurez votre formulaire pour envoyer les données à notre API.",
+                  title: "Integrate your API key",
+                  desc: "Configure your form to send data to our API.",
                 },
                 {
                   step: 3,
-                  title: "Testez votre formulaire",
-                  desc: "Soumettez un test pour vérifier le bon fonctionnement.",
+                  title: "Test your form",
+                  desc: "Submit a test to verify it works correctly.",
                 },
               ].map((item, index) => (
                 <motion.div
@@ -346,7 +350,7 @@ const Dashboard = () => {
                   variant="default"
                   className="bg-blue-600 hover:bg-blue-700 text-white group transition-colors"
                 >
-                  Voir la documentation complète
+                  View full documentation
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </motion.div>

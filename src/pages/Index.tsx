@@ -1,9 +1,9 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import FeatureCard from '@/components/FeatureCard';
 import IntegrationDemo from '@/components/IntegrationDemo';
+import PricingCard, { PricingSection } from '@/components/PricingCard';
 import FaqAccordion from '@/components/FaqAccordion';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import ComparisonSection from '@/components/ComparisonSection';
@@ -12,66 +12,66 @@ import { ArrowRight, Code, Mail, Shield, Zap, Clock, BarChart, Settings } from '
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  // Features data
+  // Updated Features data to reflect dashboard storage and email alerts
   const features = [
     {
       icon: Mail,
-      title: 'Notifications par Email',
-      description: 'Recevez instantanément les soumissions de vos formulaires par email.'
+      title: 'Email Alerts',
+      description: 'Get notified instantly via email whenever a new form submission is received.'
     },
     {
       icon: Code,
-      title: 'Aucun Backend Requis',
-      description: 'Concentrez-vous sur votre frontend et laissez Inboox gérer l\'envoi des emails.'
+      title: 'No Backend Required',
+      description: 'Focus on your frontend while Inboox stores and manages your form submissions.'
     },
     {
       icon: Shield,
-      title: 'Protection Anti-Spam',
-      description: 'Filtrage avancé pour garder votre boîte mail propre et pertinente.'
+      title: 'Spam Protection',
+      description: 'Advanced filtering to ensure only legitimate submissions reach your dashboard.'
     },
     {
       icon: Zap,
-      title: 'Rapide et Fiable',
-      description: 'Optimisé pour la vitesse avec un CDN mondial pour un traitement fiable des formulaires.'
+      title: 'Fast and Reliable',
+      description: 'Optimized for speed with a global CDN for seamless form processing and storage.'
     },
     {
       icon: Clock,
-      title: 'Configuration en Minutes',
-      description: 'Commencez rapidement avec une intégration simple pour n\'importe quel site web.'
+      title: 'Setup in Minutes',
+      description: 'Integrate quickly with any website and start collecting submissions effortlessly.'
     },
     {
-      icon: Settings,
-      title: 'Personnalisable',
-      description: 'Adaptez votre traitement de formulaire avec des redirections et validations personnalisées.'
+      icon: BarChart, // Changed to BarChart to represent dashboard
+      title: 'Dashboard Insights',
+      description: 'View and manage all your form submissions in a user-friendly dashboard.'
     }
   ];
 
-  // FAQ data
+  // Updated FAQ data to reflect the new workflow
   const faqs = [
     {
-      question: 'Comment fonctionne Inboox ?',
-      answer: 'Inboox fournit un point de terminaison API que vous pouvez utiliser comme attribut action dans vos formulaires HTML ou comme URL fetch en JavaScript. Lorsque vos utilisateurs soumettent le formulaire, les données sont envoyées à nos serveurs, validées et transmises à votre email. Aucun code backend n\'est requis de votre part.',
+      question: 'How does Inboox work?',
+      answer: 'Inboox provides an API endpoint for your HTML forms or JavaScript fetch calls. When users submit a form, the data is sent to our servers, validated, stored securely, and displayed on your dashboard. You’ll also receive an email alert for each new submission—no backend code needed on your end.'
     },
     {
-      question: 'Dois-je créer un compte ?',
-      answer: 'Oui, vous devez créer un compte gratuit pour obtenir votre point de terminaison de formulaire unique. Cela nous aide à prévenir le spam et vous permet de gérer vos soumissions de formulaire en un seul endroit.',
+      question: 'Do I need to create an account?',
+      answer: 'Yes, a free account is required to access your unique form endpoint and dashboard. This helps us secure your data and manage submissions effectively.'
     },
     {
-      question: 'Mes données sont-elles sécurisées ?',
-      answer: 'La sécurité est notre priorité absolue. Toutes les données sont chiffrées en transit avec SSL et au repos. Nous suivons les meilleures pratiques de l\'industrie pour la sécurité et la conformité des données.',
+      question: 'Is my data secure?',
+      answer: 'Absolutely. Data is encrypted in transit with SSL and at rest. We adhere to industry-standard security and compliance practices to protect your submissions.'
     },
     {
-      question: 'Comment gérer la validation des formulaires ?',
-      answer: 'Vous pouvez utiliser les attributs de validation HTML5 (required, pattern, etc.) pour une validation basique côté client. Inboox fournit également une validation côté serveur pour garantir l\'intégrité des données.',
+      question: 'How do I handle form validation?',
+      answer: 'Use HTML5 validation attributes (e.g., required, pattern) for client-side checks. Inboox also performs server-side validation before storing the data.'
     },
     {
-      question: 'Puis-je personnaliser la page de succès/erreur après la soumission du formulaire ?',
-      answer: 'Oui, vous pouvez spécifier des URL de redirection personnalisées pour les cas de succès et d\'erreur. Vous pouvez également utiliser JavaScript pour gérer les soumissions de formulaire de manière programmatique.',
+      question: 'Can I customize the success/error page after form submission?',
+      answer: 'Yes, you can set custom redirect URLs for success and error scenarios, or handle submissions programmatically with JavaScript.'
     },
     {
-      question: 'Combien de soumissions de formulaire puis-je recevoir ?',
-      answer: 'Actuellement, nous sommes en phase de lancement et notre service est en développement. Contactez-nous pour discuter de vos besoins spécifiques.',
-    },
+      question: 'How many form submissions can I receive?',
+      answer: 'We’re in the launch phase, and our service is still evolving. Contact us to discuss your specific submission volume needs.'
+    }
   ];
 
   return (
@@ -79,16 +79,16 @@ const Index = () => {
       <Navbar />
       
       <main>
-        <HeroSection />
+        <HeroSection /> {/* Ensure HeroSection reflects the dashboard focus */}
         
         {/* Features Section */}
         <section id="features" className="py-16 px-4">
           <div className="container mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-              Tout ce dont vous avez besoin pour <span className="text-gradient-blue">simplifier</span> vos formulaires
+              Everything you need to <span className="text-gradient-blue">simplify</span> your forms
             </h2>
             <p className="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">
-              Simplifiez votre processus de développement avec un ensemble d'outils conçus pour rendre la gestion des formulaires sans effort.
+              Streamline your workflow with tools that store, manage, and notify you about form submissions effortlessly.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -109,12 +109,13 @@ const Index = () => {
         <TestimonialsSection />
         
         <ComparisonSection />
+        <PricingSection />
         
         {/* FAQ Section */}
         <section id="faq" className="py-16 px-4 bg-gray-50">
           <div className="container mx-auto max-w-3xl">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-              Questions <span className="text-gradient-blue">Fréquentes</span>
+              Frequently <span className="text-gradient-blue">Asked</span> Questions
             </h2>
             
             <FaqAccordion faqs={faqs} />
@@ -125,18 +126,18 @@ const Index = () => {
         <section className="py-16 px-4 bg-gradient-blue text-white">
           <div className="container mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Prêt à simplifier la gestion de vos formulaires ?
+              Ready to simplify your form management?
             </h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto mb-8">
-              Rejoignez les développeurs qui font confiance à Inboox pour leurs soumissions de formulaires. Commencez gratuitement, aucune carte de crédit requise.
+              Join developers trusting Inboox to store submissions and get real-time alerts. Start free—no credit card needed.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button className="bg-white hover:bg-gray-100 text-blue-700 px-8 py-6 text-lg">
-                Créer un Compte Gratuit
+                Create a Free Account
               </Button>
               <Button variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-6 text-lg group">
-                Contacter l'Équipe
+                Contact the Team
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>

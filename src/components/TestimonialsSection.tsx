@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,21 +13,21 @@ interface Testimonial {
 const TestimonialsSection = () => {
   const testimonials: Testimonial[] = [
     {
-      content: "Inboox a révolutionné notre processus de gestion des formulaires. Plus besoin de créer un backend complexe, juste pour collecter des emails !",
+      content: "Inboox has revolutionized our form management process. No more need to create a complex backend just to collect emails!",
       author: "Sophie Martin",
-      role: "Développeuse Frontend",
+      role: "Frontend Developer",
       company: "Digitize",
       avatar: "/placeholder.svg"
     },
     {
-      content: "J'ai intégré l'API Inboox en moins de 5 minutes et mes formulaires de contact fonctionnent parfaitement. Un vrai gain de temps !",
+      content: "I integrated the Inboox API in less than 5 minutes, and my contact forms work perfectly. A real time-saver!",
       author: "Thomas Dubois",
-      role: "Freelance Web",
-      company: "Indépendant",
-      avatar: "/placeholder.svg"
+      role: "Web Freelancer",
+      company: "Independent",
+      avatar: "https://img.freepik.com/photos-gratuite/heureux-homme-affaires-prospere-posant-exterieur_74855-2004.jpg?ga=GA1.1.1850963107.1741607734&semt=ais_country_boost&w=740"
     },
     {
-      content: "Notre équipe peut maintenant se concentrer sur l'expérience utilisateur au lieu de perdre du temps avec la configuration de backend pour les formulaires.",
+      content: "Our team can now focus on user experience instead of wasting time on backend setup for forms.",
       author: "Marie Laurent",
       role: "Product Manager",
       company: "TechStart",
@@ -40,10 +39,10 @@ const TestimonialsSection = () => {
     <section id="testimonials" className="py-16 px-4 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Ce que disent nos <span className="text-gradient-blue">utilisateurs</span>
+          What our <span className="text-gradient-blue">users</span> say
         </h2>
         <p className="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">
-          Découvrez pourquoi les développeurs choisissent Inboox pour gérer leurs formulaires de contact.
+          Discover why developers choose Inboox to manage their contact forms.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">

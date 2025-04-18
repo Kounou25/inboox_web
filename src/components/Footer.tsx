@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Heart } from 'lucide-react';
 
@@ -10,7 +9,7 @@ const Footer = () => {
           <div className="md:col-span-1">
             <h3 className="text-xl font-bold mb-4">Inboox</h3>
             <p className="text-gray-400 mb-4">
-              Forms that just work, without any backend code. Handle form submissions, validation, and email delivery effortlessly.
+              Forms that just work, without any backend code. Store submissions on your dashboard and get instant email alerts.
             </p>
           </div>
           

@@ -13,7 +13,8 @@ const HeroSection = () => {
         </h1>
         
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mb-8">
-          Inboox handles form submissions, validation, and email delivery so you can focus on building beautiful frontends.
+        Inboox stores your form submissions on a dashboard and sends instant email alerts, so you can focus on crafting stunning frontends.
+
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
